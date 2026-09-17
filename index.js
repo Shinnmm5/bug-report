@@ -18,17 +18,24 @@ const TOKEN = process.env.DISCORD_TOKEN;
 const CLIENT_ID = process.env.CLIENT_ID;
 const REPORTS_CHANNEL_ID = process.env.REPORTS_CHANNEL_ID || '1543934020843474995';
 const SUGGESTIONS_CHANNEL_ID = process.env.SUGGESTIONS_CHANNEL_ID || REPORTS_CHANNEL_ID;
+const AUTOROLE_ID = process.env.AUTOROLE_ID;
 
-const client = new Client({ intents: [GatewayIntentBits.Guilds] });
+// Added GuildMembers intent so the bot detects when new players join
+const client = new Client({
+  intents: [
+    GatewayIntentBits.Guilds,
+    GatewayIntentBits.GuildMembers,
+  ],
+});
 
-// Register both slash commands
+// Register slash commands
 const commands = [
   new SlashCommandBuilder()
     .setName('setup-reporter')
     .setDescription('Post the bug & exploiter reporting panel (Admin only)'),
   new SlashCommandBuilder()
     .setName('setup-suggestion')
-    .setDescription('Post the player suggestions panel (Admin only)')
+    .setDescription('Post the player suggestions panel (Admin only)'),
 ].map(command => command.toJSON());
 
 const rest = new REST({ version: '10' }).setToken(TOKEN);
@@ -43,10 +50,26 @@ client.once(Events.ClientReady, async (c) => {
   }
 });
 
+// ==================== AUTO ROLE EVENT ====================
+client.on(Events.GuildMemberAdd, async (member) => {
+  if (!AUTOROLE_ID) return;
+
+  try {
+    const role = member.guild.roles.cache.get(AUTOROLE_ID);
+    if (role) {
+      await member.roles.add(role);
+      console.log(` Auto-role assigned to ${member.user.tag}`);
+    } else {
+      console.warn(` Auto-role ID ${AUTOROLE_ID} not found in guild ${member.guild.name}`);
+    }
+  } catch (error) {
+    console.error(` Failed to auto-assign role to ${member.user.tag}:`, error);
+  }
+});
+
+// ==================== INTERACTION HANDLERS ====================
 client.on(Events.InteractionCreate, async (interaction) => {
-  // ==================== SLASH COMMANDS ====================
   if (interaction.isChatInputCommand()) {
-    // 1. Bug / Exploiter Reporter Panel
     if (interaction.commandName === 'setup-reporter') {
       const embed = new EmbedBuilder()
         .setTitle(' Developer Reporting Panel')
@@ -70,7 +93,6 @@ client.on(Events.InteractionCreate, async (interaction) => {
       return;
     }
 
-    // 2. Player Suggestion Panel
     if (interaction.commandName === 'setup-suggestion') {
       const embed = new EmbedBuilder()
         .setTitle(' Player Suggestions Panel')
@@ -97,9 +119,7 @@ client.on(Events.InteractionCreate, async (interaction) => {
     }
   }
 
-  // ==================== BUTTON CLICK HANDLERS ====================
   if (interaction.isButton()) {
-    // Open Bug Report Modal
     if (interaction.customId === 'create_report_btn') {
       const modal = new ModalBuilder()
         .setCustomId('report_modal')
@@ -136,7 +156,6 @@ client.on(Events.InteractionCreate, async (interaction) => {
       return;
     }
 
-    // Open Player Suggestion Modal
     if (interaction.customId === 'create_suggestion_btn') {
       const modal = new ModalBuilder()
         .setCustomId('suggestion_modal')
@@ -174,9 +193,7 @@ client.on(Events.InteractionCreate, async (interaction) => {
     }
   }
 
-  // ==================== MODAL SUBMISSION HANDLERS ====================
   if (interaction.isModalSubmit()) {
-    // Process Bug Report Submission
     if (interaction.customId === 'report_modal') {
       if (!interaction.deferred && !interaction.replied) {
         await interaction.deferReply({ ephemeral: true }).catch(() => {});
@@ -218,7 +235,6 @@ client.on(Events.InteractionCreate, async (interaction) => {
       return;
     }
 
-    // Process Suggestion Submission
     if (interaction.customId === 'suggestion_modal') {
       if (!interaction.deferred && !interaction.replied) {
         await interaction.deferReply({ ephemeral: true }).catch(() => {});
