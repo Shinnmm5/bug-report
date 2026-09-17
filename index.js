@@ -21,7 +21,6 @@ const REPORTS_CHANNEL_ID = process.env.REPORTS_CHANNEL_ID || '154393402084347499
 const SUGGESTIONS_CHANNEL_ID = process.env.SUGGESTIONS_CHANNEL_ID || REPORTS_CHANNEL_ID;
 const AUTOROLE_ID = process.env.AUTOROLE_ID || '1550103315600113694';
 
-// Added GuildMessages and MessageContent intents for reading message text
 const client = new Client({
   intents: [
     GatewayIntentBits.Guilds,
@@ -31,11 +30,9 @@ const client = new Client({
   ],
 });
 
-// Regex patterns to detect Discord invite links and general HTTP/HTTPS links
-const DISCORD_INVITE_REGEX = /(https?:\/\/)?(www\.)?(discord\.(gg|io|me|li)|discordapp\.com\/invite|discord\.com\/invite)\/[a-zA-Z0-9]+/i;
-const GENERAL_LINK_REGEX = /https?:\/\/[^\s]+/i;
+// Matches http://, https://, www., and short domain links
+const ALL_LINKS_REGEX = /(https?:\/\/[^\s]+)|(www\.[^\s]+)|(discord\.(gg|io|me|li)\/[^\s]+)/i;
 
-// Register slash commands
 const commands = [
   new SlashCommandBuilder()
     .setName('setup-reporter')
@@ -57,27 +54,25 @@ client.once(Events.ClientReady, async (c) => {
   }
 });
 
-// ==================== ANTI-LINK & ANTI-INVITE LISTENER ====================
+// ==================== ANTI-ALL-LINKS LISTENER ====================
 client.on(Events.MessageCreate, async (message) => {
-  // Ignore bots or direct messages
   if (message.author.bot || !message.guild) return;
 
-  // Bypass protection for Admins and Moderators with Manage Messages permission
+  // Admins & Moderators with Manage Messages permission bypass link restriction
   if (message.member?.permissions.has(PermissionFlagsBits.ManageMessages)) return;
 
-  // Detect Discord invite links (change to GENERAL_LINK_REGEX to block all web links)
-  if (DISCORD_INVITE_REGEX.test(message.content)) {
+  // Check if message contains ANY URL
+  if (ALL_LINKS_REGEX.test(message.content)) {
     try {
       await message.delete();
 
       const warning = await message.channel.send(
-        ` ${message.author}, Discord invite links are not allowed here!`
+        ` ${message.author}, posting links is not allowed in this server!`
       );
 
-      // Auto-delete warning message after 5 seconds
       setTimeout(() => warning.delete().catch(() => {}), 5000);
     } catch (error) {
-      console.error(`Failed to delete invite link from ${message.author.tag}:`, error);
+      console.error(`Failed to delete link from ${message.author.tag}:`, error);
     }
   }
 });
