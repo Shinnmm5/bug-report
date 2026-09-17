@@ -126,7 +126,8 @@ client.on(Events.InteractionCreate, async (interaction) => {
           '**Guidelines:**\n' +
           '• Be specific with your idea.\n' +
           '• Explain why should we add it.\n' +
-          '• Keep suggestions good.'
+          '• Keep suggestions good.\n' +
+          '• Must be 5 reacts'
         )
         .setColor(0x00FF7F)
         .setFooter({ text: 'AetherRise Community Feedback' });
@@ -135,7 +136,6 @@ client.on(Events.InteractionCreate, async (interaction) => {
         new ButtonBuilder()
           .setCustomId('create_suggestion_btn')
           .setLabel('Submit Suggestion')
-          .setEmoji('🙏')
           .setStyle(ButtonStyle.Success)
       );
 
