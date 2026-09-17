@@ -125,7 +125,7 @@ client.on(Events.InteractionCreate, async (interaction) => {
           'Have an idea to improve the game or server? Click the button below to submit your suggestion to the developers and community!\n\n' +
           '**Guidelines:**\n' +
           '• Be specific with your idea.\n' +
-          '• Explain why shoule we add it.\n' +
+          '• Explain why should we add it.\n' +
           '• Keep suggestions good.'
         )
         .setColor(0x00FF7F)
