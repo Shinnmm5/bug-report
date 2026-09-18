@@ -196,7 +196,7 @@ client.on(Events.InteractionCreate, async (interaction) => {
       const categoryInput = new TextInputBuilder()
         .setCustomId('suggestion_category')
         .setLabel('Category')
-        .setPlaceholder('e.g., Gameplay, UI, Economy, Cosmetics')
+        .setPlaceholder('e.g., Gameplay, UI, Monster, Graphics')
         .setStyle(TextInputStyle.Short)
         .setRequired(true);
 
